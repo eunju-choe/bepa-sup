@@ -2,4 +2,3 @@ Flask
 pandas
 gunicorn
 openpyxl
-chardet
