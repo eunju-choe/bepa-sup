@@ -103,7 +103,13 @@ def upload_edu_file():
     mismatch_file = os.path.join(app.config['PROCESSED_FOLDER'], 'name_mismatch.csv')
     space_comparison_file = os.path.join(app.config['PROCESSED_FOLDER'], 'space_comparison.csv')
     bracket_comparison_file = os.path.join(app.config['PROCESSED_FOLDER'], 'bracket_comparison.csv')
-
+    
+    # 파일 경로 출력 ## 테스트 코드
+    print(f"Duplicated file path: {duplicated_file}")
+    print(f"Mismatch file path: {mismatch_file}")
+    print(f"Space comparison file path: {space_comparison_file}")
+    print(f"Bracket comparison file path: {bracket_comparison_file}")
+    
     # 처리된 데이터 저장
     duplicated_names.to_csv(duplicated_file, index=False, encoding='CP949')
     name_mismatch[['과정명', '고유개수', '이름개수']].to_csv(mismatch_file, index=False, encoding='CP949')
