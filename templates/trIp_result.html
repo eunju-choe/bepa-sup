@@ -1,10 +1,13 @@
+<!-- templates/trip_result.html -->
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-    <title>출장 데이터 결과</title>
+    <meta charset="UTF-8">
+    <title>출장 처리 결과</title>
 </head>
 <body>
-    <h1>처리된 출장 데이터</h1>
-    <a href="/trip/download/{{ processed_trip_file }}">다운로드</a>
+    <h1>출장 처리 결과</h1>
+    <p>처리된 파일: <a href="{{ output_path }}">다운로드</a></p>
+    <p>부서별 파일: <a href="{{ zip_file_path }}">압축 파일 다운로드</a></p>
 </body>
 </html>
