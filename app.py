@@ -3,6 +3,8 @@ import pandas as pd # type: ignore
 import os
 import zipfile
 import re
+import warnings
+warnings.filterwarnings('ignore')
 
 app = Flask(__name__)
 
@@ -127,9 +129,9 @@ def upload_edu_file():
                            space_comparison_file='space_comparison.csv',
                            bracket_comparison_file='bracket_comparison.csv')
 
-# 파일 다운로드 처리
-@app.route('/download/<filename>')
-def download_file(filename):
+# 파일 다운로드 처리 (교육 관련)
+@app.route('/edu/download/<filename>')
+def download_edu_file(filename):
     file_path = os.path.join(app.config['PROCESSED_FOLDER'], filename)
     return send_file(file_path, as_attachment=True)
 
@@ -140,7 +142,7 @@ def download_file(filename):
 def trip_index():
     return render_template('trip_index.html')
 
-@app.route('/upload', methods=['POST'])
+@app.route('trip/upload', methods=['POST'])
 # 엑셀 파일 처리 함수
 def process_excel_files(trip_path, tag_path):
     # 파일 읽기
@@ -268,8 +270,9 @@ def upload_file():
     # 파일 경로를 전달하여 다운로드 페이지로 리디렉션
     return render_template('trip_result.html', output_path=output_path, department_files=department_files, zip_file_path=zip_file_path)
 
-@app.route('/download/<file_name>')
-def download_file(file_name):
+# 파일 다운로드 처리 (관내여비 관련)
+@app.route('/trip/download/<file_name>')
+def download_trip_file(file_name):
     # 업로드 폴더 경로 설정
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], file_name)
     if os.path.exists(file_path):
@@ -277,7 +280,7 @@ def download_file(file_name):
     else:
         return f'파일 {file_name}을 찾을 수 없습니다.'
 
-@app.route('/download_zip/<zip_file_name>')
+@app.route('/trip/download_zip/<zip_file_name>')
 def download_zip(zip_file_name):
     # 압축된 파일 다운로드
     zip_file_path = os.path.join(app.config['UPLOAD_FOLDER'], zip_file_name)
