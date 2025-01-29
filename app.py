@@ -254,7 +254,7 @@ def upload_and_process_trip_files():
         group = group.drop(['신청일', '근태항목', '종료일', '일수', '내용',
                                    '시작시간', '종료시간', '외출태그', '복귀태그',
                                    '외출태그(산출)', '복귀태그(산출)', '출장시간(산출)/분'], axis=1)
-        file_path.sort_values(by=['사원', '출장기간'], inplace=True)
+        group.sort_values(by=['사원', '출장기간'], inplace=True)
         group.to_excel(file_path, index=False)
         department_files.append(file_path)
 
