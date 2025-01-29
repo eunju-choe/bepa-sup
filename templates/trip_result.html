@@ -1,13 +1,77 @@
-<!-- templates/trip_result.html -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>출장 처리 결과</title>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            margin: 0;
+            padding: 0 40px;
+            background: linear-gradient(135deg, #f9f9f9, #e0e0e0);
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #073D95;
+            margin: 40px 0;
+            font-size: 2.5em;
+        }
+        h2 {
+            margin: 30px 0 10px;
+            color: #333;
+            text-align: justify;
+            font-size: 1.6em;
+        }
+        .divider {
+            height: 1px;
+            background-color: #b6b6b6;
+            margin: 30px 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        a {
+            display: inline-block;
+            margin: 10px 0;
+            padding: 10px 20px;
+            color: #fff;
+            background-color: #073D95;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        a:hover {
+            background-color: #004494;
+            transform: scale(1.05);
+        }
+        footer {
+            text-align: center;
+            margin: 40px 0;
+            font-size: 0.9em;
+            color: #777;
+        }
+    </style>
 </head>
 <body>
     <h1>출장 처리 결과</h1>
-    <p>처리된 파일: <a href="{{ output_path }}">다운로드</a></p>
-    <p>부서별 파일: <a href="{{ zip_file_path }}">압축 파일 다운로드</a></p>
+    <div class="container">
+        <h2>처리된 파일</h2>
+        <a href="{{ url_for('download_trip_file', file_name=output_path) }}">다운로드</a>
+        <div class="divider"></div>
+        <h2>부서별 파일</h2>
+        <a href="{{ url_for('download_zip', zip_file_name=zip_file_path) }}">압축 파일 다운로드</a>
+    </div>
+    <footer>
+        &copy; 2024 ejchoe24. All rights reserved. | Version 2.0
+    </footer>
 </body>
 </html>
