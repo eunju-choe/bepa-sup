@@ -254,7 +254,7 @@ def upload_file():
     tag_file.save(tag_path)
     
     # 엑셀 파일 처리
-    df_trip = process_excel_files(trip_path, tag_path)
+    df_trip = process_excel_files(trip_path, tag_path)  # trip_path와 tag_path를 넘겨줌
     
     # 처리된 데이터 저장
     output_path = os.path.join(app.config['UPLOAD_FOLDER'], 'processed_trip_all.xlsx')
