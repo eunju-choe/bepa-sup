@@ -2,7 +2,6 @@ from flask import Flask, render_template, request, send_file, redirect, url_for
 import pandas as pd
 import os
 import zipfile
-import re
 
 app = Flask(__name__)
 
@@ -80,20 +79,45 @@ def upload_trip_file():
     trip_file.save(trip_path)
     tag_file.save(tag_path)
     
+    # 엑셀 파일 처리
     df_trip = pd.read_excel(trip_path, header=1)
     df_trip.columns.values[:8] = pd.read_excel(trip_path, nrows=0).columns[:8]
     df_trip.drop(['No', '근태분류', '첨부파일', '신청서', '문서제목', '문서삭제사유', '결재상태'], axis=1, inplace=True, errors='ignore')
     df_trip = df_trip[df_trip['근태항목'] == '관내출장']
     
+    # 여비 산출 로직
     df_trip['여비'] = 10000
     df_trip.loc[df_trip['출장시간'] >= 240, '여비'] = 20000
     df_trip.loc[df_trip['교통수단'] == '관용차량', '여비'] -= 10000
     df_trip.loc[df_trip['여비'] < 0, '여비'] = 0
     
+    # 부서별 엑셀 파일 저장 함수
+    def save_department_files(df_trip, folder_path):
+        department_files = []
+        for dept, group in df_trip.groupby('부서'):
+            file_path = os.path.join(folder_path, f'{dept}_trip.xlsx')
+            group.to_excel(file_path, index=False)
+            department_files.append(file_path)
+        return department_files
+    
+    # 부서별 엑셀 파일 저장
+    department_files = save_department_files(df_trip, app.config['PROCESSED_FOLDER'])
+    
+    # 부서별 엑셀 파일 압축본 생성
+    def create_zip_file(file_paths, zip_path):
+        with zipfile.ZipFile(zip_path, 'w') as zipf:
+            for file in file_paths:
+                zipf.write(file, os.path.basename(file))
+        return zip_path
+    
+    zip_path = os.path.join(PROCESSED_FOLDER, 'department_files.zip')
+    zip_file_path = create_zip_file(department_files, zip_path)
+    
+    # 최종 처리된 파일 저장
     output_path = os.path.join(UPLOAD_FOLDER, 'processed_trip_all.xlsx')
     df_trip.to_excel(output_path, index=False)
     
-    return render_template('trip_result.html', output_path='processed_trip_all.xlsx')
+    return render_template('trip_result.html', output_path='processed_trip_all.xlsx', zip_file_path='department_files.zip')
 
 if __name__ == '__main__':
     app.run(debug=True)
