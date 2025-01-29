@@ -2,29 +2,8 @@ from flask import Flask, render_template, request, send_file, redirect, url_for
 import pandas as pd
 import os
 import zipfile
-import chardet
 
 app = Flask(__name__)
-# 파일 인코딩 자동 감지 함수
-def read_csv_with_fallback(file_path):
-    # 우선 chardet로 인코딩 감지
-    with open(file_path, 'rb') as f:
-        result = chardet.detect(f.read())
-    file_encoding = result['encoding']
-    
-    # 여러 인코딩을 시도하면서 읽기
-    encodings = [file_encoding, 'utf-8', 'euc-kr', 'cp949', 'latin1']
-    
-    for enc in encodings:
-        try:
-            # 인코딩을 시도하면서 CSV 파일을 읽기
-            df = pd.read_csv(file_path, encoding=enc, skiprows=1)
-            return df
-        except UnicodeDecodeError:
-            continue  # 만약 인코딩 오류가 나면 다음 인코딩을 시도
-
-    # 모든 인코딩에서 실패한 경우
-    raise ValueError("파일을 읽을 수 없습니다. 다른 인코딩을 확인해 주세요.")
 
 # 업로드 및 처리 폴더 설정
 UPLOAD_FOLDER = 'uploads'
@@ -60,7 +39,7 @@ def upload_edu_file():
     
     # CSV 파일 처리
     try:
-        df = read_csv_with_fallback(file_path)
+        df = pd.read_csv(file_path, encoding='CP949', skiprows=1)
     except Exception as e:
         return f"CSV 파일을 처리하는 중 오류가 발생했습니다: {str(e)}"
     
@@ -89,7 +68,7 @@ def upload_edu_file():
 
     bracket_yes = space_yes.groupby('과정명').sum().reset_index()
     bracket_yes.columns = ['과정명', '괄호 제거 전']
-    bracket_yes['과정명'] = bracket_yes['과정명'].apply(lambda x: re.sub(r'\(\d+(차시|시간)\)', '', x))
+    bracket_yes['과정명'] = bracket_yes['과정명'].apply(lambda x:re.sub(r'\(\d+(차시|시간)\)', '', x))
 
     space_no = df.copy()
     space_no['과정명'] = space_no['과정명'].str.replace(' ', '', regex=False)
