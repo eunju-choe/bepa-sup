@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>교육 데이터 결과</title>
+</head>
+<body>
+    <h1>중복된 교육 데이터</h1>
+    {{ duplicated_names|safe }}
+    <a href="/edu/download/{{ duplicated_file }}">다운로드</a>
+</body>
+</html>

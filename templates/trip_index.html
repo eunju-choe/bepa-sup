@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>관내출장 담당자 서포터</title>
+</head>
+<body>
+    <h1>출장 데이터 업로드</h1>
+    <form action="/trip/upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="trip_file" required>
+        <input type="file" name="tag_file" required>
+        <button type="submit">업로드</button>
+    </form>
+</body>
+</html>
