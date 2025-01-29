@@ -1,5 +1,5 @@
-from flask import Flask, render_template, request, send_file, redirect, url_for
-import pandas as pd
+from flask import Flask, render_template, request, send_file, redirect, url_for # type: ignore
+import pandas as pd # type: ignore
 import os
 import zipfile
 import re
@@ -139,6 +139,8 @@ def download_file(filename):
 @app.route('/trip')
 def trip_index():
     return render_template('trip_index.html')
+
+@app.route('/upload', methods=['POST'])
 # 엑셀 파일 처리 함수
 def process_excel_files(trip_path, tag_path):
     # 파일 읽기
@@ -232,12 +234,6 @@ def create_zip_file(file_paths, zip_path):
             zipf.write(file, os.path.basename(file))
     return zip_path
 
-# 페이지 요청 처리
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-@app.route('/upload', methods=['POST'])
 def upload_file():
     if 'trip_file' not in request.files or 'tag_file' not in request.files:
         return 'No file part'
