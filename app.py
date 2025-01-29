@@ -106,12 +106,6 @@ def upload_edu_file():
     space_comparison_file = os.path.join(app.config['PROCESSED_FOLDER'], 'space_comparison.csv')
     bracket_comparison_file = os.path.join(app.config['PROCESSED_FOLDER'], 'bracket_comparison.csv')
     
-    # 파일 경로 출력 ## 테스트 코드
-    print(f"Duplicated file path: {duplicated_file}")
-    print(f"Mismatch file path: {mismatch_file}")
-    print(f"Space comparison file path: {space_comparison_file}")
-    print(f"Bracket comparison file path: {bracket_comparison_file}")
-    
     # 처리된 데이터 저장
     duplicated_names.to_csv(duplicated_file, index=False, encoding='CP949')
     name_mismatch[['과정명', '고유개수', '이름개수']].to_csv(mismatch_file, index=False, encoding='CP949')
@@ -246,7 +240,10 @@ def upload_and_process_trip_files():
     df_trip.to_excel(output_path, index=False)
     
     # 결과 페이지로 리디렉션
-    return render_template('trip_result.html', output_path=output_path, department_files=department_files, zip_file_path=zip_path)
+    return render_template('trip_result.html', 
+                           output_path=output_path, 
+                           department_files=department_files, 
+                           zip_file_path=zip_path)
 
 # 파일 다운로드 처리 (관내여비 관련)
 @app.route('/trip/download/<file_name>')
