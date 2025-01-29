@@ -157,44 +157,69 @@ def upload_and_process_trip_files():
     
     # 엑셀 파일 처리
     try:
+        # 출장 신청 데이터 불러오기
         df_trip = pd.read_excel(trip_path, header=1)
         df_trip.columns.values[:8] = pd.read_excel(trip_path, nrows=0).columns[:8]
+        # 불필요한 컬럼 제거
         df_trip.drop(['No', '근태분류', '첨부파일', '신청서', '문서제목',
                       '문서삭제사유', '결재상태'], axis=1, inplace=True)
+        # 관내출장 추출
         df_trip = df_trip[df_trip['근태항목'] == '관내출장']
         
+        # 태그 데이터 불러오기
         df_tag = pd.read_excel(tag_path)
+        # 불필요한 컬럼 제거
         df_tag.drop(['No', '사원코드', '부서코드', '근무조', '출입카드번호',
                      '근태적용상태', '외부연동일시', '근태적용일시'], axis=1, inplace=True)
         
         # 외출/복귀 시간 태깅
         df_trip[['외출태그', '복귀태그']] = [None] * 2
+        # 변수 정의
         cols = ['사원', '부서', '출장기간', '시작시간', '종료시간']
         
         for i in range(len(df_trip)):
+            # 변수 정의
             name, dept, date, str_time, end_time = df_trip.iloc[i, df_trip.columns.get_indexer(cols)]
             out_time, in_time = [None] * 2
             
+            # 태그 이력 추출
             cond_date = df_tag['태깅일자'] == date
             cond_name = df_tag['사원'] == name
             cond_dept = df_tag['부서'] == dept
             df_cond = df_tag[cond_date & cond_name & cond_dept]
             
+            # 외출 : 가장 늦게 찍은 기록
             try:
                 out_time = df_cond[df_cond['근태구분'] == '외출']['근무시간'].iloc[-1]
             except IndexError:
                 pass
             
+            # 복귀 : 가장 먼저 찍은 기록
             try:
                 in_time = df_cond[df_cond['근태구분'] == '복귀']['근무시간'].iloc[0]
             except IndexError:
                 pass
             
+            # 출장 시작 9시// 출장 종료 18시 : 자동 설정
             if str_time == '09:00':
                 out_time = str_time
             if end_time == '18:00':
                 in_time = end_time
             
+            # 출장 시작보다 빨리 나간 경우 : 출장 시작 시간으로 설정
+            if pd.isna(out_time):
+                pass
+            else:
+                if str_time > out_time:
+                    out_time = str_time
+                
+            # 출장 종료보다 늦게 들어온 경우 : 출장 종료 시간으로 설정
+            if pd.isna(in_time):
+                pass
+            else:
+                if end_time < in_time:
+                    in_time = end_time
+
             df_trip.iloc[i, df_trip.columns.get_indexer(['외출태그', '복귀태그'])] = out_time, in_time
         
         # 출장시간 계산
@@ -225,18 +250,26 @@ def upload_and_process_trip_files():
     # 부서별 엑셀 파일 저장
     department_files = []
     for dept, group in df_trip.groupby('부서'):
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], f'{dept}_trip.xlsx')
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], f'{dept}_관내여비.xlsx')
+        file_path = file_path.drop(['신청일', '근태항목', '종료일', '일수', '내용',
+                                   '시작시간', '종료시간', '외출태그', '복귀태그',
+                                   '외출태그(산출)', '복귀태그(산출)', '출장시간(산출)/분'], axis=1)
+        file_path.sort_values(by=['사원', '출장기간'], inplace=True)
         group.to_excel(file_path, index=False)
         department_files.append(file_path)
 
     # 파일 압축
-    zip_path = os.path.join(app.config['UPLOAD_FOLDER'], 'department_files.zip')
+    zip_path = os.path.join(app.config['UPLOAD_FOLDER'], '부서별 관내여비.zip')
     with zipfile.ZipFile(zip_path, 'w') as zipf:
         for file in department_files:
             zipf.write(file, os.path.basename(file))
     
     # 처리된 데이터 저장
-    output_path = os.path.join(app.config['UPLOAD_FOLDER'], 'processed_trip_all.xlsx')
+    output_path = os.path.join(app.config['UPLOAD_FOLDER'], '전체 부서 관내여비.xlsx')
+    df_trip.drop(['신청일', '근태항목', '종료일', '일수', '내용',
+                                   '시작시간', '종료시간', '외출태그', '복귀태그',
+                                   '외출태그(산출)', '복귀태그(산출)', '출장시간(산출)/분'], axis=1)
+    df_trip.sort_values(by=['부서', '사원', '출장기간'], inplace=True)
     df_trip.to_excel(output_path, index=False)
     
     # 결과 페이지로 리디렉션
