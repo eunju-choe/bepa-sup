@@ -29,6 +29,17 @@
             max-width: 800px;
         }
 
+        .logo {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .logo img {
+            width: 200px;
+            height: auto;
+        }
+        
         img {
             width: 250px;
             height: auto;
@@ -64,7 +75,7 @@
             background-color: #e1f5fe;
             border: 1px solid #073D95;
             border-radius: 10px;
-            max-width: 800px;
+            max-width: 700px;
             width: 100%;
             text-align: justify;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -85,7 +96,7 @@
             background-color: #ffffff;
             border-radius: 10px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            max-width: 800px;
+            max-width: 700px;
             width: 100%;
         }
 
@@ -169,6 +180,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <header>
+        <div class="logo">
+            <img src="../static/logo.png" alt="Logo">
+        </div>
+    </header>
+
     <h1>교육 담당자 서포터</h1>
     
     <div class="instruction">
@@ -182,7 +199,7 @@
         </ol>
     </div>
     <form action="/edu/upload" method="post" enctype="multipart/form-data">
-        <h3>CSV 파일을 업로드해주세요.</h3>
+        <h3>CSV 파일 업로드</h3>
         <label>
             <input type="checkbox" name="include_date" value="yes"> 교육일시를 포함하여 중복된 데이터 확인
         </label>

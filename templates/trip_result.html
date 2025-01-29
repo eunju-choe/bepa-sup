@@ -12,10 +12,22 @@
             background: linear-gradient(135deg, #f9f9f9, #e0e0e0);
             color: #333;
         }
+
+        .logo {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .logo img {
+            width: 200px;
+            height: auto;
+        }
+
         h1 {
             text-align: center;
             color: #073D95;
-            margin: 40px 0;
+            margin-top: 100px;
             font-size: 2.5em;
         }
         h2 {
@@ -69,7 +81,7 @@
             transform: scale(1.05);
         }
         .download-btn {
-            font-size: 0.9em;
+            font-size: 0.8rem;
             padding: 6px 12px;
         }
         footer {
@@ -80,10 +92,15 @@
         }
     </style>
 </head>
+<header>
+    <div class="logo">
+        <img src="../static/logo.png" alt="Logo">
+    </div>
+</header>
 <body>
     <h1>관내여비 담당자 서포터</h1>
     <div class="container">
-        <h2>부서별 개별 파일 다운로드</h2>
+        <h2>부서별 파일 다운로드</h2>
         <table>
             <thead>
                 <tr>
@@ -102,10 +119,10 @@
         </table>
         <div class="divider"></div>
         
-        <h2>부서별 파일 압축 다운로드 <a class="download-btn" href="{{ url_for('download_zip', zip_file_name=zip_file_path.split('/')[-1]) }}">다운로드</a></h2>
+        <h2>전체 부서 압축 파일 다운로드 <a class="download-btn" href="{{ url_for('download_zip', zip_file_name=zip_file_path.split('/')[-1]) }}">다운로드</a></h2>
         <div class="divider"></div>
         
-        <h2>전체 부서 처리 파일 다운로드 <a class="download-btn" href="{{ url_for('download_trip_file', file_name=output_path.split('/')[-1]) }}">다운로드</a></h2>
+        <h2>전체 부서 엑셀 파일 다운로드 <a class="download-btn" href="{{ url_for('download_trip_file', file_name=output_path.split('/')[-1]) }}">다운로드</a></h2>
     </div>
     <footer>
         &copy; 2024 ejchoe24. All rights reserved. | Version 2.0

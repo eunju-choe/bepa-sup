@@ -31,21 +31,57 @@
         }
 
         form {
-            margin-top: 30px;
             padding: 20px;
             background-color: #ffffff;
             border-radius: 10px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            max-width: 800px;
+            max-width: 700px;
             width: 100%;
             text-align: left;
         }
 
-        form h3 {
+        form h2 {
             color: #073D95;
             margin-bottom: 20px;
         }
+        
+        form p {
+            font-size: 1rem;
+        }
 
+        .instruction {
+            margin: 20px;
+            padding: 15px;
+            background-color: #e1f5fe;
+            border: 1px solid #073D95;
+            border-radius: 10px;
+            max-width: 700px;
+            width: 100%;
+            text-align: justify;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .instruction p {
+            text-align: justify;
+            font-size: 0.95rem;
+        }
+
+        ol {
+            padding-left: 30px;
+            list-style: disc;
+            font-size: 0.85rem;
+        }
+        
+        .logo {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .logo img {
+            width: 200px;
+            height: auto;
+        }
         input[type="file"] {
             padding: 10px;
             border-radius: 5px;
@@ -112,12 +148,30 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <header>
+        <div class="logo">
+            <img src="../static/logo.png" alt="Logo">
+        </div>
+    </header>
+
     <h1>관내여비 담당자 서포터</h1>
+
+    <div class="instruction">
+        <h2>엑셀 파일 업로드 방법</h2>
+        <p>출장 신청과 출입 태그 기록을 다운받아 업로드해주세요.<br>
+            데이터를 우클릭하여 "엑셀변환하기"를 선택하면 엑셀 파일로 다운받을 수 있습니다.</p>
+        <ol>
+            <li>출장 신청 : 인사관리 > 근태관리 > 근태신청관리 > 출장신청현황</li>
+            <li>출입 태그 : 인사관리 > 근태관리 > 근무시간관리 > 출퇴근태깅이력</li>
+
+        </ol>
+    </div>
+
     <form action="/trip/upload" method="post" enctype="multipart/form-data">
-        <h3>필요한 파일을 업로드하세요</h3>
-        <p>1. <strong>출장 데이터 파일</strong></p>
+        <h2>파일 업로드</h2>
+        <p><strong>출장 신청 파일</strong></p>
         <input type="file" name="trip_file" required>
-        <p>2. <strong>태그 데이터 파일</strong></p>
+        <p><strong>출입 태그 파일</strong></p>
         <input type="file" name="tag_file" required>
         <button type="submit">업로드</button>
     </form>
