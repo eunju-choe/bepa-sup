@@ -142,7 +142,7 @@ def download_edu_file(filename):
 def trip_index():
     return render_template('trip_index.html')
 
-@app.route('trip/upload', methods=['POST'])
+@app.route('/trip/upload', methods=['POST'])
 # 엑셀 파일 처리 함수
 def process_excel_files(trip_path, tag_path):
     # 파일 읽기
