@@ -23,6 +23,9 @@
             color: #333;
             text-align: justify;
             font-size: 1.6em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .divider {
             height: 1px;
@@ -36,12 +39,24 @@
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
         }
         a {
             display: inline-block;
-            margin: 10px 0;
-            padding: 10px 20px;
+            padding: 8px 16px;
             color: #fff;
             background-color: #073D95;
             text-decoration: none;
@@ -52,6 +67,10 @@
         a:hover {
             background-color: #004494;
             transform: scale(1.05);
+        }
+        .download-btn {
+            font-size: 0.9em;
+            padding: 6px 12px;
         }
         footer {
             text-align: center;
@@ -65,15 +84,28 @@
     <h1>관내여비 담당자 서포터</h1>
     <div class="container">
         <h2>부서별 개별 파일 다운로드</h2>
-        {% for file in department_files %}
-            <a href="{{ url_for('download_trip_file', file_name=file.split('/')[-1]) }}">{{ file.split('/')[-1] }}</a>
-        {% endfor %}
+        <table>
+            <thead>
+                <tr>
+                    <th>부서 이름</th>
+                    <th>다운로드</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in department_files %}
+                <tr>
+                    <td>{{ file.split('/')[-1] }}</td>
+                    <td><a class="download-btn" href="{{ url_for('download_trip_file', file_name=file.split('/')[-1]) }}">다운로드</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
         <div class="divider"></div>
-        <h2>부서별 파일 압축 다운로드</h2>
-        <a href="{{ url_for('download_zip', zip_file_name=zip_file_path.split('/')[-1]) }}">부서별 파일 압축 다운로드</a>
+        
+        <h2>부서별 파일 압축 다운로드 <a class="download-btn" href="{{ url_for('download_zip', zip_file_name=zip_file_path.split('/')[-1]) }}">다운로드</a></h2>
         <div class="divider"></div>
-        <h2>전체 부서 처리 파일 다운로드</h2>
-        <a href="{{ url_for('download_trip_file', file_name=output_path.split('/')[-1]) }}">전체 부서 처리 파일 다운로드</a>
+        
+        <h2>전체 부서 처리 파일 다운로드 <a class="download-btn" href="{{ url_for('download_trip_file', file_name=output_path.split('/')[-1]) }}">다운로드</a></h2>
     </div>
     <footer>
         &copy; 2024 ejchoe24. All rights reserved. | Version 2.0
