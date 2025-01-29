@@ -88,32 +88,32 @@
     <h1>교육 담당자 서포터</h1>
 
     <h2>중복 데이터 확인</h2>
-    <a href="/download/processed/{{ duplicated_file }}">파일 다운로드</a>
+    <a href="/download/{{ duplicated_file }}">파일 다운로드</a>
     <div class="table-container">
         {{ duplicated_names|safe }}
     </div>
     <div class="divider"></div> <!-- 연한 직선 추가 -->
-    
+
     <h2>이름 개수가 일치하지 않는 교육 확인</h2>
-    <a href="/download/processed/{{ mismatch_file }}">파일 다운로드</a>
+    <a href="/download/{{ mismatch_file }}">파일 다운로드</a>
     <div class="table-container">
         {{ name_mismatch|safe }}
     </div>
     <div class="divider"></div> <!-- 연한 직선 추가 -->
-    
+
     <h2>과정명 띄어쓰기 제거 후 비교</h2>
-    <a href="/download/processed/{{ space_comparison_file }}">파일 다운로드</a>
+    <a href="/download/{{ space_comparison_file }}">파일 다운로드</a>
     <div class="table-container">
         {{ space_comparison|safe }}
     </div>
     <div class="divider"></div> <!-- 연한 직선 추가 -->
-    
+
     <h2>(n차시) & (n시간) 제거 후 비교</h2>
-    <a href="/download/processed/{{ bracket_comparison_file }}">파일 다운로드</a>
+    <a href="/download/{{ bracket_comparison_file }}">파일 다운로드</a>
     <div class="table-container">
         {{ bracket_comparison|safe }}
     </div>
-    
+
     <footer>
         &copy; 2024 ejchoe24. All rights reserved. | Version 2.0
     </footer>
