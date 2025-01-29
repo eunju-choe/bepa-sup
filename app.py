@@ -139,60 +139,156 @@ def download_file(filename):
 @app.route('/trip')
 def trip_index():
     return render_template('trip_index.html')
+# 엑셀 파일 처리 함수
+def process_excel_files(trip_path, tag_path):
+    # 파일 읽기
+    df_trip = pd.read_excel(trip_path, header=1)
+    df_trip.columns.values[:8] = pd.read_excel(trip_path, nrows=0).columns[:8]
+    df_trip.drop(['No', '근태분류', '첨부파일', '신청서', '문서제목',
+                  '문서삭제사유', '결재상태'], axis=1, inplace=True)
+    df_trip = df_trip[df_trip['근태항목'] == '관내출장']
+    
+    df_tag = pd.read_excel(tag_path)
+    df_tag.drop(['No', '사원코드', '부서코드', '근무조', '출입카드번호',
+                 '근태적용상태', '외부연동일시', '근태적용일시'], axis=1, inplace=True)
+    
+    df_trip[['외출태그', '복귀태그']] = [None] * 2
+    
+    cols = ['사원', '부서', '출장기간', '시작시간', '종료시간']
+    
+    for i in range(len(df_trip)):
+        name, dept, date, str_time, end_time = df_trip.iloc[i, df_trip.columns.get_indexer(cols)]
+        out_time, in_time = [None] * 2
+        
+        cond_date = df_tag['태깅일자'] == date
+        cond_name = df_tag['사원'] == name
+        cond_dept = df_tag['부서'] == dept
+        df_cond = df_tag[cond_date & cond_name & cond_dept]
+        
+        try:
+            out_time = df_cond[df_cond['근태구분'] == '외출']['근무시간'].iloc[-1]
+        except IndexError:
+            pass
+        
+        try:
+            in_time = df_cond[df_cond['근태구분'] == '복귀']['근무시간'].iloc[0]
+        except IndexError:
+            pass
+        
+        if str_time == '09:00':
+            out_time = str_time
+        if end_time == '18:00':
+            in_time = end_time
+        
+        if pd.isna(out_time):
+            pass
+        else:
+            if str_time > out_time:
+                out_time = str_time
 
-@app.route('/trip/upload', methods=['POST'])
-def upload_trip_file():
-    trip_file = request.files.get('trip_file')
-    tag_file = request.files.get('tag_file')
+        if pd.isna(in_time):
+            pass
+        else:
+            if end_time < in_time:
+                in_time = end_time
+        
+        df_trip.iloc[i, df_trip.columns.get_indexer(['외출태그', '복귀태그'])] = out_time, in_time
     
-    if not trip_file or not tag_file or trip_file.filename == '' or tag_file.filename == '':
-        return '파일이 없습니다.'
+    df_trip['외출태그(산출)'] = pd.to_datetime(df_trip['외출태그'], format='%H:%M')
+    df_trip['복귀태그(산출)'] = pd.to_datetime(df_trip['복귀태그'], format='%H:%M')
     
-    trip_path = os.path.join(UPLOAD_FOLDER, 'trip_all.xlsx')
-    tag_path = os.path.join(UPLOAD_FOLDER, 'tag_all.xlsx')
+    total_time = (df_trip['복귀태그(산출)'] - df_trip['외출태그(산출)'])
+    df_trip['출장시간(산출)/분'] = total_time.dt.total_seconds() // 60
+    df_trip['출장시간'] = total_time.apply(lambda x: None if pd.isna(x) else f'{x.components.hours}:{x.components.minutes:02d}')
+    
+    df_trip['여비'] = 0
+    for i in range(len(df_trip)):
+        car, time = df_trip.iloc[i, df_trip.columns.get_indexer(['교통수단', '출장시간(산출)/분'])]
+
+        if pd.isna(time): m = 0
+        elif time < 240: m = 10000
+        else: m = 20000
+
+        if car == '관용차량': m -= 10000
+        if m < 0: m = 0
+
+        df_trip.iloc[i, df_trip.columns.get_loc('여비')] = m
+
+    return df_trip
+
+# 부서별 엑셀 파일 저장 함수
+def save_department_files(df_trip, folder_path):
+    department_files = []
+    for dept, group in df_trip.groupby('부서'):
+        file_path = os.path.join(folder_path, f'{dept}_trip.xlsx')
+        group.to_excel(file_path, index=False)
+        department_files.append(file_path)
+    return department_files
+
+# 파일을 압축하는 함수
+def create_zip_file(file_paths, zip_path):
+    with zipfile.ZipFile(zip_path, 'w') as zipf:
+        for file in file_paths:
+            zipf.write(file, os.path.basename(file))
+    return zip_path
+
+# 페이지 요청 처리
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if 'trip_file' not in request.files or 'tag_file' not in request.files:
+        return 'No file part'
+    
+    trip_file = request.files['trip_file']
+    tag_file = request.files['tag_file']
+    
+    if trip_file.filename == '' or tag_file.filename == '':
+        return 'No selected file'
+    
+    # 업로드된 파일을 저장할 경로 설정
+    trip_path = os.path.join(app.config['UPLOAD_FOLDER'], 'trip_all.xlsx')
+    tag_path = os.path.join(app.config['UPLOAD_FOLDER'], 'tag_all.xlsx')
     
     trip_file.save(trip_path)
     tag_file.save(tag_path)
     
     # 엑셀 파일 처리
-    df_trip = pd.read_excel(trip_path, header=1)
-    df_trip.columns.values[:8] = pd.read_excel(trip_path, nrows=0).columns[:8]
-    df_trip.drop(['No', '근태분류', '첨부파일', '신청서', '문서제목', '문서삭제사유', '결재상태'], axis=1, inplace=True, errors='ignore')
-    df_trip = df_trip[df_trip['근태항목'] == '관내출장']
+    df_trip = process_excel_files(trip_path, tag_path)
     
-    # 여비 산출 로직
-    df_trip['여비'] = 10000
-    df_trip.loc[df_trip['출장시간'] >= 240, '여비'] = 20000
-    df_trip.loc[df_trip['교통수단'] == '관용차량', '여비'] -= 10000
-    df_trip.loc[df_trip['여비'] < 0, '여비'] = 0
-    
-    # 부서별 엑셀 파일 저장 함수
-    def save_department_files(df_trip, folder_path):
-        department_files = []
-        for dept, group in df_trip.groupby('부서'):
-            file_path = os.path.join(folder_path, f'{dept}_trip.xlsx')
-            group.to_excel(file_path, index=False)
-            department_files.append(file_path)
-        return department_files
-    
-    # 부서별 엑셀 파일 저장
-    department_files = save_department_files(df_trip, app.config['PROCESSED_FOLDER'])
-    
-    # 부서별 엑셀 파일 압축본 생성
-    def create_zip_file(file_paths, zip_path):
-        with zipfile.ZipFile(zip_path, 'w') as zipf:
-            for file in file_paths:
-                zipf.write(file, os.path.basename(file))
-        return zip_path
-    
-    zip_path = os.path.join(PROCESSED_FOLDER, 'department_files.zip')
-    zip_file_path = create_zip_file(department_files, zip_path)
-    
-    # 최종 처리된 파일 저장
-    output_path = os.path.join(UPLOAD_FOLDER, 'processed_trip_all.xlsx')
+    # 처리된 데이터 저장
+    output_path = os.path.join(app.config['UPLOAD_FOLDER'], 'processed_trip_all.xlsx')
     df_trip.to_excel(output_path, index=False)
     
-    return render_template('trip_result.html', output_path='processed_trip_all.xlsx', zip_file_path='department_files.zip')
+    # 부서별 엑셀 파일 저장
+    department_files = save_department_files(df_trip, app.config['UPLOAD_FOLDER'])
+    
+    # 부서별 엑셀 파일 압축본 생성
+    zip_path = os.path.join(app.config['UPLOAD_FOLDER'], 'department_files.zip')
+    zip_file_path = create_zip_file(department_files, zip_path)
+    
+    # 파일 경로를 전달하여 다운로드 페이지로 리디렉션
+    return render_template('trip_result.html', output_path=output_path, department_files=department_files, zip_file_path=zip_file_path)
+
+@app.route('/download/<file_name>')
+def download_file(file_name):
+    # 업로드 폴더 경로 설정
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], file_name)
+    if os.path.exists(file_path):
+        return send_file(file_path, as_attachment=True)
+    else:
+        return f'파일 {file_name}을 찾을 수 없습니다.'
+
+@app.route('/download_zip/<zip_file_name>')
+def download_zip(zip_file_name):
+    # 압축된 파일 다운로드
+    zip_file_path = os.path.join(app.config['UPLOAD_FOLDER'], zip_file_name)
+    if os.path.exists(zip_file_path):
+        return send_file(zip_file_path, as_attachment=True)
+    else:
+        return f'압축 파일 {zip_file_name}을 찾을 수 없습니다.'
 
 if __name__ == '__main__':
     app.run(debug=True)
