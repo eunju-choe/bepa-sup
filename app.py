@@ -252,7 +252,6 @@ def upload_and_process_trip_files():
     for dept, group in df_trip.groupby('부서'):
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], f'{dept}_관내여비.xlsx')
         group = group.drop(['신청일', '근태항목', '종료일', '일수', '내용',
-                                   '시작시간', '종료시간', '외출태그', '복귀태그',
                                    '외출태그(산출)', '복귀태그(산출)', '출장시간(산출)/분'], axis=1)
         group.sort_values(by=['사원', '출장기간'], inplace=True)
         group.to_excel(file_path, index=False)
@@ -267,7 +266,6 @@ def upload_and_process_trip_files():
     # 처리된 데이터 저장
     output_path = os.path.join(app.config['UPLOAD_FOLDER'], '전체 부서 관내여비.xlsx')
     df_trip = df_trip.drop(['신청일', '근태항목', '종료일', '일수', '내용',
-                                   '시작시간', '종료시간', '외출태그', '복귀태그',
                                    '외출태그(산출)', '복귀태그(산출)', '출장시간(산출)/분'], axis=1)
     df_trip.sort_values(by=['부서', '사원', '출장기간'], inplace=True)
     df_trip.to_excel(output_path, index=False)
