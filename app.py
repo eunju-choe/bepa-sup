@@ -219,14 +219,14 @@ def upload_and_process_trip_files():
                 pass
             else:
                 if str_time > out_time:
-                    out_time = str_time
+                    out_time_use = str_time
                 
             # 출장 종료보다 늦게 들어온 경우 : 출장 종료 시간으로 설정
             if pd.isna(in_time):
                 pass
             else:
                 if end_time < in_time:
-                    in_time = end_time
+                    in_time_use = end_time
 
             df_trip.iloc[i, df_trip.columns.get_indexer(['외출태그', '복귀태그', '외출태그(인정)', '복귀태그(인정)'])] = out_time, in_time, out_time_use, in_time_use
         
