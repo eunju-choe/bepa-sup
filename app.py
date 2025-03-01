@@ -237,8 +237,8 @@ def upload_and_process_trip_files():
         df_trip['복귀태그(인정)'] = df_trip['복귀태그(인정)'].apply(lambda x : None if x=='불인정' else x)
 
         # 출장시간 계산
-        df_trip['외출태그(산출)'] = pd.to_datetime(df_trip['외출태그'], format='%H:%M')
-        df_trip['복귀태그(산출)'] = pd.to_datetime(df_trip['복귀태그'], format='%H:%M')
+        df_trip['외출태그(산출)'] = pd.to_datetime(df_trip['외출태그(인정)'], format='%H:%M')
+        df_trip['복귀태그(산출)'] = pd.to_datetime(df_trip['복귀태그(인정)'], format='%H:%M')
         
         total_time = (df_trip['복귀태그(산출)'] - df_trip['외출태그(산출)'])
         df_trip['출장시간(산출)/분'] = total_time.dt.total_seconds() // 60
