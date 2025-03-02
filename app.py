@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file, redirect, url_for, render_template_string # type: ignore
+from flask import Flask, render_template, request, send_file, redirect, url_for # type: ignore
 import pandas as pd # type: ignore
 import os
 import zipfile
@@ -44,7 +44,7 @@ def upload_edu_file():
     try:
         df = pd.read_csv(file_path, encoding='CP949', skiprows=1)
     except Exception as e:
-        return f"CSV 파일을 처리하는 중 오류가 발생했습니다: {str(e)}"
+        return f"CSV 파일을 처리하는 중 오류가 발생했습니다: {e}"
     
     df = df.dropna(subset=['연번', '이름']).drop(columns=['비고1', '비고2', 'Unnamed: 14'])
     df = df.rename(columns={'교육\n일시': '교육일시', '교육\n시간': '교육시간'})
