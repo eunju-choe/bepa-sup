@@ -346,7 +346,7 @@ def number_to_korean(num):
     return ''.join(result[::-1])
 
 @app.route('/money', methods=['GET', 'POST'])
-def index():
+def money_converter():
     result = ""
     if request.method == 'POST':
         num = request.form.get('number', '')
