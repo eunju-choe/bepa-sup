@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file, redirect, url_for # type: ignore
+from flask import Flask, render_template, request, send_file, redirect, url_for, render_template_string # type: ignore
 import pandas as pd # type: ignore
 import os
 import zipfile
@@ -310,6 +310,52 @@ def download_zip(zip_file_name):
         return send_file(zip_file_path, as_attachment=True)
     else:
         return f'압축 파일 {zip_file_name}을 찾을 수 없습니다.'
+
+"""
+=============== 숫자 한글 변환기 ===============
+"""
+def number_to_korean(num):
+    # 숫자에서 콤마 제거 후 정수 변환
+    num = int(re.sub(r'[,]', '', num))
+    
+    units = ['', '만', '억', '조', '경']  # 단위 리스트
+    small_units = ['', '십', '백', '천']  # 작은 단위 리스트
+    digits = [''] + list('일이삼사오육칠팔구')  # 숫자 변환 리스트
+    
+    if num == 0:
+        return '영'
+    
+    result = []
+    unit_index = 0
+    
+    while num > 0:
+        part = num % 10000  # 네 자리씩 끊어서 처리
+        num //= 10000
+        
+        if part > 0:
+            part_str = ''
+            for i in range(4):  # 네 자리 숫자 변환
+                digit = (part // (10 ** i)) % 10
+                if digit != 0:
+                    part_str = digits[digit] + small_units[i] + part_str
+            
+            result.append(part_str + units[unit_index])
+        
+        unit_index += 1
+    
+    return ''.join(result[::-1])
+
+@app.route('/money', methods=['GET', 'POST'])
+def index():
+    result = ""
+    if request.method == 'POST':
+        num = request.form.get('number', '')
+        try:
+            result = number_to_korean(num)
+        except ValueError:
+            result = "올바른 숫자를 입력하세요."
+    
+    return render_template('money.html', result=result)
 
 if __name__ == '__main__':
     app.run(debug=True)
