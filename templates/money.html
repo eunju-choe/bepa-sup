@@ -38,13 +38,13 @@
         }
 
         input[type="text"] {
-            width: 100%;
+            width: 95%;
             padding: 10px;
             margin-bottom: 15px;
             border: 1px solid #bdc3c7;
             border-radius: 5px;
             font-size: 1rem;
-            text-align: right;
+            text-align: justify;
         }
 
         button {
@@ -65,11 +65,41 @@
             transform: translateY(-2px);
         }
 
+        .logo {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .logo img {
+            width: 200px;
+            height: auto;
+        }
+
         .result {
             margin-top: 20px;
             font-size: 1.2rem;
             color: #073D95;
             font-weight: 600;
+        }
+
+        footer {
+            margin-top: 30px;
+            font-size: 0.9rem;
+            color: #95a5a6;
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        footer a {
+            color: #2980b9;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        footer a:hover {
+            color: #1e6a91;
         }
 
         @media (max-width: 800px) {
@@ -92,10 +122,16 @@
     </script>
 </head>
 <body>
+    <header>
+        <div class="logo">
+            <img src="../static/logo.png" alt="Logo">
+        </div>
+    </header>
+
     <h1>숫자 한글 변환기</h1>
 
     <form method="post">
-        <input type="text" name="number" placeholder="숫자를 입력하세요 (예: 1,950,000)" required oninput="formatNumber(this)">
+        <input type="text" name="number" placeholder="숫자를 입력하세요." required oninput="formatNumber(this)">
         <button type="submit">변환</button>
     </form>
 
@@ -105,4 +141,9 @@
         </div>
     {% endif %}
 </body>
+
+<footer>
+    <p>&copy; 2024 ejchoe24. All rights reserved. | Version 2.1</p>
+</footer>
+
 </html>
