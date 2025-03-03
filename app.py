@@ -348,14 +348,19 @@ def number_to_korean(num):
 @app.route('/money', methods=['GET', 'POST'])
 def money_converter():
     result = ""
+    formatted_input = ""
+    
     if request.method == 'POST':
         num = request.form.get('number', '')
         try:
-            result = number_to_korean(num)
+            num = re.sub(r'[^0-9]', '', num)  # 숫자만 남기기
+            if num:
+                formatted_input = "{:,}".format(int(num))  # 콤마 추가된 형식
+                converted = number_to_korean(num)
+                result = f"입력값 = {formatted_input} / 변환값 = {converted}"
+            else:
+                result = "올바른 숫자를 입력하세요."
         except ValueError:
             result = "올바른 숫자를 입력하세요."
     
     return render_template('money.html', result=result)
-
-if __name__ == '__main__':
-    app.run(debug=True)

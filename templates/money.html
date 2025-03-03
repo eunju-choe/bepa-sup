@@ -44,6 +44,7 @@
             border: 1px solid #bdc3c7;
             border-radius: 5px;
             font-size: 1rem;
+            text-align: right;
         }
 
         button {
@@ -81,18 +82,26 @@
             }
         }
     </style>
+    <script>
+        function formatNumber(input) {
+            let value = input.value.replace(/[^0-9]/g, ''); // 숫자만 남기기
+            if (value) {
+                input.value = new Intl.NumberFormat().format(value);
+            }
+        }
+    </script>
 </head>
 <body>
     <h1>숫자 한글 변환기</h1>
 
     <form method="post">
-        <input type="text" name="number" placeholder="숫자를 입력하세요 (예: 1,950,000)" required>
+        <input type="text" name="number" placeholder="숫자를 입력하세요 (예: 1,950,000)" required oninput="formatNumber(this)">
         <button type="submit">변환</button>
     </form>
 
     {% if result %}
         <div class="result">
-            <p>결과: {{ result }}</p>
+            <p>{{ result }}</p>
         </div>
     {% endif %}
 </body>
