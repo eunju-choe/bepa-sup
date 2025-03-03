@@ -315,13 +315,12 @@ def download_zip(zip_file_name):
 =============== 숫자 한글 변환기 ===============
 """
 def number_to_korean(num):
-    # 숫자에서 콤마 제거 후 정수 변환
-    num = int(re.sub(r'[,]', '', num))
+    num = int(re.sub(r'[,]', '', num))  # 숫자에서 콤마 제거 후 정수 변환
     
-    units = ['', '만', '억', '조', '경']  # 단위 리스트
-    small_units = ['', '십', '백', '천']  # 작은 단위 리스트
-    digits = [''] + list('일이삼사오육칠팔구')  # 숫자 변환 리스트
-    
+    units = ['', '만', '억', '조', '경']  
+    small_units = ['', '십', '백', '천']  
+    digits = [''] + list('일이삼사오육칠팔구')  
+
     if num == 0:
         return '영'
     
@@ -329,12 +328,12 @@ def number_to_korean(num):
     unit_index = 0
     
     while num > 0:
-        part = num % 10000  # 네 자리씩 끊어서 처리
+        part = num % 10000  
         num //= 10000
         
         if part > 0:
             part_str = ''
-            for i in range(4):  # 네 자리 숫자 변환
+            for i in range(4):  
                 digit = (part // (10 ** i)) % 10
                 if digit != 0:
                     part_str = digits[digit] + small_units[i] + part_str
@@ -347,20 +346,22 @@ def number_to_korean(num):
 
 @app.route('/money', methods=['GET', 'POST'])
 def money_converter():
-    result = ""
-    formatted_input = ""
+    input_value = ""
+    converted_value = ""
     
     if request.method == 'POST':
         num = request.form.get('number', '')
         try:
             num = re.sub(r'[^0-9]', '', num)  # 숫자만 남기기
             if num:
-                formatted_input = "{:,}".format(int(num))  # 콤마 추가된 형식
-                converted = number_to_korean(num)
-                result = f"입력값 = {formatted_input} / 변환값 = {converted}"
+                input_value = "{:,}".format(int(num))  # 콤마 추가된 입력값
+                converted_value = number_to_korean(num)  # 변환값
             else:
-                result = "올바른 숫자를 입력하세요."
+                converted_value = "올바른 숫자를 입력하세요."
         except ValueError:
-            result = "올바른 숫자를 입력하세요."
+            converted_value = "올바른 숫자를 입력하세요."
     
-    return render_template('money.html', result=result)
+    return render_template('money.html', input_value=input_value, converted_value=converted_value)
+
+if __name__ == '__main__':
+    app.run(debug=True)

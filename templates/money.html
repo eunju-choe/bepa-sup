@@ -25,6 +25,7 @@
             color: #073D95;
             font-weight: 700;
             text-align: center;
+            margin-bottom: 20px;
         }
 
         form {
@@ -39,12 +40,13 @@
 
         input[type="text"] {
             width: 95%;
-            padding: 10px;
+            padding: 12px;
             margin-bottom: 15px;
             border: 1px solid #bdc3c7;
             border-radius: 5px;
-            font-size: 1rem;
+            font-size: 1.1rem;
             text-align: justify;
+            transition: all 0.3s ease-in-out;
         }
 
         button {
@@ -54,17 +56,31 @@
             background-color: #073D95;
             border: none;
             border-radius: 5px;
-            font-size: 1rem;
+            font-size: 1.2rem;
             font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.3s ease-in-out, transform 0.3s ease-in-out;
+            transition: all 0.3s ease-in-out;
         }
 
         button:hover {
             background-color: #1e6a91;
-            transform: translateY(-2px);
+            transform: scale(1.05);
         }
 
+        .result-container {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f3faff;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 500px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.5s ease-in-out forwards;
+        }
+        
         .logo {
             position: absolute;
             top: 20px;
@@ -76,50 +92,33 @@
             height: auto;
         }
 
-        .result {
-            margin-top: 20px;
-            font-size: 1.2rem;
+        .input-value {
+            font-size: 1rem;
+            color: #555;
+            background: #e3eaf3;
+            padding: 10px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .converted-value {
+            font-size: 1.5rem;
             color: #073D95;
-            font-weight: 600;
+            font-weight: 700;
         }
 
-        footer {
-            margin-top: 30px;
-            font-size: 0.9rem;
-            color: #95a5a6;
-            text-align: center;
-            max-width: 800px;
-            width: 100%;
-        }
-
-        footer a {
-            color: #2980b9;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-
-        footer a:hover {
-            color: #1e6a91;
-        }
-
-        @media (max-width: 800px) {
-            h1 {
-                font-size: 2rem;
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
             }
-
-            form {
-                width: 90%;
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
         }
     </style>
-    <script>
-        function formatNumber(input) {
-            let value = input.value.replace(/[^0-9]/g, ''); // 숫자만 남기기
-            if (value) {
-                input.value = new Intl.NumberFormat().format(value);
-            }
-        }
-    </script>
 </head>
 <body>
     <header>
@@ -131,15 +130,17 @@
     <h1>숫자 한글 변환기</h1>
 
     <form method="post">
-        <input type="text" name="number" placeholder="숫자를 입력하세요." required oninput="formatNumber(this)">
+        <input type="text" name="number" placeholder="숫자를 입력하세요." required>
         <button type="submit">변환</button>
     </form>
 
-    {% if result %}
-        <div class="result">
-            <p>{{ result }}</p>
+    {% if converted_value %}
+        <div class="result-container">
+            <div class="input-value">입력값: {{ input_value }}</div>
+            <div class="converted-value">→ {{ converted_value }}</div>
         </div>
     {% endif %}
+
 </body>
 
 <footer>
