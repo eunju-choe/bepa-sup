@@ -265,7 +265,10 @@ def upload_and_process_trip_files():
     department_files = []
     for dept, group in df_trip.groupby('부서'):
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], f'{dept}_관내여비.xlsx')
-        group.sort_values(by=['사원', '출장기간'], inplace=True)
+        try:
+            group.sort_values(by=['사원', '출장기간'], inplace=True)
+        except:
+            group.sort_values(by=['사원'], inplace=True)
         group = group[['부서', '사원', '직급', '신청일', '출장기간', '종료일', '시작시간', 
         '종료시간', '일수', '신청시간', '외출태그', '복귀태그', '외출태그(인정)', '복귀태그(인정)',
         '출장시간', '여비', '교통수단', '운전자', '출발지', '도착지', '경유지', '방문처', '목적', '내용']]
