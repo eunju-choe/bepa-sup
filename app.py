@@ -172,7 +172,7 @@ def upload_and_process_trip_files():
         df_tag = pd.read_excel(tag_path)
         # 불필요한 컬럼 제거
         df_tag.drop(['No', '사원코드', '부서코드', '근무조', '출입카드번호',
-                     '근태적용상태', '외부연동일시', '근태적용일시'], axis=1, inplace=True)
+                     '근태적용상태', '외부연동일시', '근태적용일시'], axis=1, inplace=True, errors='ignore')
         
         # 외출/복귀 시간 태깅
         df_trip[['외출태그', '복귀태그', '외출태그(인정)', '복귀태그(인정)']] = [None] * 4
