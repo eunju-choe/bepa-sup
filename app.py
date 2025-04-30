@@ -166,7 +166,7 @@ def upload_and_process_trip_files():
         df_trip = df_trip[df_trip['결재상태'].str.startswith('결재완료')]
         # 불필요한 컬럼 제거
         df_trip.drop(['No', '근태분류', '첨부파일', '신청서', '문서제목', '문서삭제사유',
-                    '근태항목', '결재상태'], axis=1, inplace=True)
+                    '근태항목', '결재상태'], axis=1, inplace=True, errors='ignore')
         
         # 태그 데이터 불러오기
         df_tag = pd.read_excel(tag_path)
