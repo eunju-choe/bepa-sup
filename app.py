@@ -46,7 +46,7 @@ def upload_edu_file():
     except Exception as e:
         return f"CSV 파일을 처리하는 중 오류가 발생했습니다: {e}"
     
-    df = df.dropna(subset=['연번', '이름']).drop(columns=['비고1', '비고2', 'Unnamed: 14'], errors='ignore')
+    df = df.dropna(subset=['연번', '이름']).drop(columns=['비고1', '비고2', 'Unnamed: 14'])
     df = df.rename(columns={'교육\n일시': '교육일시', '교육\n시간': '교육시간'})
     df[['연번', '교육시간']] = df[['연번', '교육시간']].astype('int')
     
@@ -166,13 +166,13 @@ def upload_and_process_trip_files():
         df_trip = df_trip[df_trip['결재상태'].str.startswith('결재완료')]
         # 불필요한 컬럼 제거
         df_trip.drop(['No', '근태분류', '첨부파일', '신청서', '문서제목', '문서삭제사유',
-                    '근태항목', '결재상태'], axis=1, inplace=True, errors='ignore')
+                    '근태항목', '결재상태'], axis=1, inplace=True)
         
         # 태그 데이터 불러오기
         df_tag = pd.read_excel(tag_path)
         # 불필요한 컬럼 제거
         df_tag.drop(['No', '사원코드', '부서코드', '근무조', '출입카드번호',
-                     '근태적용상태', '외부연동일시', '근태적용일시'], axis=1, inplace=True, errors='ignore')
+                     '근태적용상태', '외부연동일시', '근태적용일시'], axis=1, inplace=True)
         
         # 외출/복귀 시간 태깅
         df_trip[['외출태그', '복귀태그', '외출태그(인정)', '복귀태그(인정)']] = [None] * 4
@@ -265,7 +265,7 @@ def upload_and_process_trip_files():
     department_files = []
     for dept, group in df_trip.groupby('부서'):
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], f'{dept}_관내여비.xlsx')
-        #group.sort_values(by=['사원', '출장기간'], inplace=True)
+        group.sort_values(by=['사원', '출장기간'], inplace=True)
         group = group[['부서', '사원', '직급', '신청일', '출장기간', '종료일', '시작시간', 
         '종료시간', '일수', '신청시간', '외출태그', '복귀태그', '외출태그(인정)', '복귀태그(인정)',
         '출장시간', '여비', '교통수단', '운전자', '출발지', '도착지', '경유지', '방문처', '목적', '내용']]
