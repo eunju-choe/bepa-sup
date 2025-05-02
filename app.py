@@ -283,25 +283,27 @@ def upload_and_process_trip_files():
         group.to_excel(file_path, index=False)
         department_files.append(file_path)
 
-    # 파일 압축
-    zip_path = os.path.join(app.config['UPLOAD_FOLDER'], '부서별 관내여비.zip')
-    with zipfile.ZipFile(zip_path, 'w') as zipf:
-        for file in department_files:
-            zipf.write(file, os.path.basename(file))
+    # 파일 압축 > 안써유
+    # zip_path = os.path.join(app.config['UPLOAD_FOLDER'], '부서별 관내여비.zip')
+    # with zipfile.ZipFile(zip_path, 'w') as zipf:
+    #     for file in department_files:
+    #         zipf.write(file, os.path.basename(file))
     
-    # 처리된 데이터 저장
-    output_path = os.path.join(app.config['UPLOAD_FOLDER'], '전체 부서 관내여비.xlsx')
-    df_trip.sort_values(by=['부서', '사원', '시작일'], inplace=True)
-    df_trip = df_trip[['부서', '사원', '직급', '신청일', '시작일', '종료일', '시작시간', 
-        '종료시간', '일수', '신청시간', '외출태그', '복귀태그', '외출태그(인정)', '복귀태그(인정)',
-        '출장시간', '여비', '교통수단', '운전자', '출발지', '도착지', '경유지', '방문처', '목적', '내용']]
-    df_trip.to_excel(output_path, index=False)
+    # 처리된 데이터 저장 > 안써유
+    # output_path = os.path.join(app.config['UPLOAD_FOLDER'], '전체 부서 관내여비.xlsx')
+    # df_trip.sort_values(by=['부서', '사원', '시작일'], inplace=True)
+    # df_trip = df_trip[['부서', '사원', '직급', '신청일', '시작일', '종료일', '시작시간', 
+    #     '종료시간', '일수', '신청시간', '외출태그', '복귀태그', '외출태그(인정)', '복귀태그(인정)',
+    #     '출장시간', '여비', '교통수단', '운전자', '출발지', '도착지', '경유지', '방문처', '목적', '내용']]
+    # df_trip.to_excel(output_path, index=False)
     
-    # 결과 페이지로 리디렉션
-    return render_template('trip_result.html', 
-                           output_path=output_path, 
-                           department_files=department_files, 
-                           zip_file_path=zip_path)
+    # 결과 페이지로 리디렉션 > 여기 손댐
+    # return render_template('trip_result.html', 
+    #                        output_path=output_path, 
+    #                        department_files=department_files, 
+    #                        zip_file_path=zip_path)
+    return render_template('trip_result.html', department_files=department_files)
+
 
 # 파일 다운로드 처리 (관내여비 관련)
 @app.route('/trip/download/<file_name>')
@@ -313,14 +315,15 @@ def download_trip_file(file_name):
     else:
         return f'파일 {file_name}을 찾을 수 없습니다.'
 
-@app.route('/trip/download_zip/<zip_file_name>')
-def download_zip(zip_file_name):
-    # 압축된 파일 다운로드
-    zip_file_path = os.path.join(app.config['UPLOAD_FOLDER'], zip_file_name)
-    if os.path.exists(zip_file_path):
-        return send_file(zip_file_path, as_attachment=True)
-    else:
-        return f'압축 파일 {zip_file_name}을 찾을 수 없습니다.'
+# 압축 안해용
+# @app.route('/trip/download_zip/<zip_file_name>')
+# def download_zip(zip_file_name):
+#     # 압축된 파일 다운로드
+#     zip_file_path = os.path.join(app.config['UPLOAD_FOLDER'], zip_file_name)
+#     if os.path.exists(zip_file_path):
+#         return send_file(zip_file_path, as_attachment=True)
+#     else:
+#         return f'압축 파일 {zip_file_name}을 찾을 수 없습니다.'
 
 """
 =============== 숫자 한글 변환기 ===============
