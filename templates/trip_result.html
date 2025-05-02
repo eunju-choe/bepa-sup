@@ -111,11 +111,11 @@
 <body>
     <h1>관내여비 담당자 서포터</h1>
     <div class="container">
-        <h2>부서별 파일 다운로드</h2>
+        <h2>파일 다운로드</h2>
         <table>
             <thead>
                 <tr>
-                    <th>부서명</th>
+                    <th>파일명</th>
                     <th>다운로드</th>
                 </tr>
             </thead>
@@ -129,12 +129,12 @@
             </tbody>
         </table>
         <div class="divider"></div>
-    <!-- 안써유
+    {#
         <h2>전체 부서 압축 파일 다운로드 <a class="download-btn" href="{{ url_for('download_zip', zip_file_name=zip_file_path.split('/')[-1]) }}">다운로드</a></h2>
         <div class="divider"></div>
     
         <h2>전체 부서 엑셀 파일 다운로드 <a class="download-btn" href="{{ url_for('download_trip_file', file_name=output_path.split('/')[-1]) }}">다운로드</a></h2>
-    -->
+    #}
     </div>
     <footer>
         &copy; 2024 ejchoe24. All rights reserved. | Version 2.4
