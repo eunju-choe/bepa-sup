@@ -159,50 +159,58 @@ def upload_and_process_trip_files():
     try:
         # 출장 신청 데이터 불러오기
         df_trip = pd.read_excel(trip_path, header=1)
-        df_trip.columns.values[:8] = pd.read_excel(trip_path, nrows=0).columns[:8]
+        col_tmp = pd.read_excel(trip_path, nrows=0).columns
+        col_tmp = col_tmp[:col_tmp.get_loc('출장기간') - 1]
+        df_trip.columns.values[:len(col_tmp)+1] = pd.read_excel(trip_path, nrows=0).columns[:8]
         # 관내출장 추출
         df_trip = df_trip[df_trip['근태항목'] == '관내출장']
         # 결재완료 추출
         df_trip = df_trip[df_trip['결재상태'].str.startswith('결재완료')]
-        # 불필요한 컬럼 제거
-        df_trip.drop(['No', '근태분류', '첨부파일', '신청서', '문서제목', '문서삭제사유',
-                    '근태항목', '결재상태'], axis=1, inplace=True, errors='ignore')
+
+        # 부산경제진흥원 부서 검증
+        depts = df_trip['부서'].unique()
+        bepa = ['경영기획실', '청년사업단', '산업인력지원단', '소상공인지원단', '기업지원단', '글로벌사업추진단', '부원장', '기업옴부즈맨실', '임원']
+        for dept in depts:
+            if dept not in bepa:
+                raise ValueError("오류가 발생하였습니다. 혁신홍보팀으로 연락 바랍니다.")
+
+        # 필요한 컬럼만 추출
+        df_trip = df_trip[['부서', '사원코드', '사원', '직급', '신청일', '시작일', '종료일', '시작시간', '종료시간',
+                   '일수', '신청시간', '교통수단', '운전자', '출발지', '도착지', '경유지', 
+                   '방문처', '목적', '내용']]
         
         # 태그 데이터 불러오기
         df_tag = pd.read_excel(tag_path)
-        # 불필요한 컬럼 제거
-        df_tag.drop(['No', '사원코드', '부서코드', '근무조', '출입카드번호',
-                     '근태적용상태', '외부연동일시', '근태적용일시'], axis=1, inplace=True, errors='ignore')
+        df_tag = df_tag[['태깅일자', '사원코드', '근태구분', '근무시간']]
         
         # 외출/복귀 시간 태깅
         df_trip[['외출태그', '복귀태그', '외출태그(인정)', '복귀태그(인정)']] = [None] * 4
         # 변수 정의
-        cols = ['사원', '부서', '출장기간', '시작시간', '종료시간']
+        cols = ['사원코드', '부서', '시작일', '시작시간', '종료시간']
         
         for i in range(len(df_trip)):
             # 변수 정의
-            name, dept, date, str_time, end_time = df_trip.iloc[i, df_trip.columns.get_indexer(cols)]
+            id, dept, date, str_time, end_time = df_trip.iloc[i, df_trip.columns.get_indexer(cols)]
             out_time, in_time, out_time_use, in_time_use = [None] * 4
             
             # 태그 이력 추출
             cond_date = df_tag['태깅일자'] == date
-            cond_name = df_tag['사원'] == name
-            cond_dept = df_tag['부서'] == dept
-            df_cond = df_tag[cond_date & cond_name & cond_dept]
+            cond_id = df_tag['사원코드'] == id
+            df_cond = df_tag[cond_date & cond_id]
             
             # 외출 : 가장 늦게 찍은 기록
             try:
                 out_time = df_cond[df_cond['근태구분'] == '외출']['근무시간'].iloc[-1]
             except IndexError:
                 pass
-            
-            # 복귀 : 가장 먼저 찍은 기록
+
+            # 복귀 : 가장 먼저 찍은 기록 
             try:
                 in_time = df_cond[df_cond['근태구분'] == '복귀']['근무시간'].iloc[0]
             except IndexError:
                 pass
-            
-            # 신청 시간과 태그 시간이 겹치지 않는 경우
+
+            # 신청시간과 태그시간이 겹치지 않는 경우
             if out_time and in_time:
                 if (out_time > end_time) or (in_time < str_time):
                     out_time_use, in_time_use = ['불인정'] * 2
@@ -266,10 +274,10 @@ def upload_and_process_trip_files():
     for dept, group in df_trip.groupby('부서'):
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], f'{dept}_관내여비.xlsx')
         try:
-            group.sort_values(by=['사원', '출장기간'], inplace=True)
+            group.sort_values(by=['사원', '시작일'], inplace=True)
         except:
             group.sort_values(by=['사원'], inplace=True)
-        group = group[['부서', '사원', '직급', '신청일', '출장기간', '종료일', '시작시간', 
+        group = group[['부서', '사원', '직급', '신청일', '시작일', '종료일', '시작시간', 
         '종료시간', '일수', '신청시간', '외출태그', '복귀태그', '외출태그(인정)', '복귀태그(인정)',
         '출장시간', '여비', '교통수단', '운전자', '출발지', '도착지', '경유지', '방문처', '목적', '내용']]
         group.to_excel(file_path, index=False)
@@ -283,8 +291,8 @@ def upload_and_process_trip_files():
     
     # 처리된 데이터 저장
     output_path = os.path.join(app.config['UPLOAD_FOLDER'], '전체 부서 관내여비.xlsx')
-    df_trip.sort_values(by=['부서', '사원', '출장기간'], inplace=True)
-    df_trip = df_trip[['부서', '사원', '직급', '신청일', '출장기간', '종료일', '시작시간', 
+    df_trip.sort_values(by=['부서', '사원', '시작일'], inplace=True)
+    df_trip = df_trip[['부서', '사원', '직급', '신청일', '시작일', '종료일', '시작시간', 
         '종료시간', '일수', '신청시간', '외출태그', '복귀태그', '외출태그(인정)', '복귀태그(인정)',
         '출장시간', '여비', '교통수단', '운전자', '출발지', '도착지', '경유지', '방문처', '목적', '내용']]
     df_trip.to_excel(output_path, index=False)
