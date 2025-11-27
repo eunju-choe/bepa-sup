@@ -171,7 +171,7 @@ def upload_and_process_trip_files():
         bepa = ['경영기획실', '청년사업단', '산업인력지원단', '소상공인지원단', '기업지원단', '글로벌사업추진단', '부원장', '기업옴부즈맨실', '임원']
         for dept in depts:
             if dept not in bepa:
-                raise ValueError("오류가 발생하였습니다. 혁신홍보팀으로 연락 바랍니다.")
+                raise ValueError("오류가 발생하였습니다. 데이터전략TF팀으로 연락 바랍니다.")
 
         # 필요한 컬럼만 추출
         df_trip = df_trip[['부서', '사원코드', '사원', '직급', '신청일', '시작일', '종료일', '시작시간', '종료시간',
@@ -282,25 +282,6 @@ def upload_and_process_trip_files():
         group.to_excel(file_path, index=False)
         department_files.append(file_path)
 
-    # 파일 압축 > 안써유
-    # zip_path = os.path.join(app.config['UPLOAD_FOLDER'], '부서별 관내여비.zip')
-    # with zipfile.ZipFile(zip_path, 'w') as zipf:
-    #     for file in department_files:
-    #         zipf.write(file, os.path.basename(file))
-    
-    # 처리된 데이터 저장 > 안써유
-    # output_path = os.path.join(app.config['UPLOAD_FOLDER'], '전체 부서 관내여비.xlsx')
-    # df_trip.sort_values(by=['부서', '사원', '시작일'], inplace=True)
-    # df_trip = df_trip[['부서', '사원', '직급', '신청일', '시작일', '종료일', '시작시간', 
-    #     '종료시간', '일수', '신청시간', '외출태그', '복귀태그', '외출태그(인정)', '복귀태그(인정)',
-    #     '출장시간', '여비', '교통수단', '운전자', '출발지', '도착지', '경유지', '방문처', '목적', '내용']]
-    # df_trip.to_excel(output_path, index=False)
-    
-    # 결과 페이지로 리디렉션 > 여기 손댐
-    # return render_template('trip_result.html', 
-    #                        output_path=output_path, 
-    #                        department_files=department_files, 
-    #                        zip_file_path=zip_path)
     return render_template('trip_result.html', department_files=department_files)
 
 
