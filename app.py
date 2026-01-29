@@ -171,10 +171,15 @@ def upload_and_process_trip_files():
             
             # 서식
             gray_bg_format = workbook.add_format({'bg_color': '#D3D3D3'})
+            red_text_format = workbook.add_format({'font_color': 'red'})
 
             worksheet.conditional_format(f'M2:M{max_row}', {'type': 'blanks', 'format': gray_bg_format})
             worksheet.conditional_format(f'N2:N{max_row}', {'type': 'blanks', 'format': gray_bg_format})
-            
+            worksheet.conditional_format(f'A2:X{max_row}', {
+                'type': 'formula',
+                'criteria': '=LEFT($J2, 1)="-"',
+                'format': red_text_format
+            })
             worksheet.set_column('A:X', 12)
 
         department_files.append(file_path)
