@@ -4,6 +4,7 @@ import os
 import re
 import numpy as np
 import warnings
+import openpyxl
 warnings.filterwarnings('ignore')
 
 app = Flask(__name__)
@@ -196,6 +197,274 @@ def download_trip_file(file_name):
         return send_file(file_path, as_attachment=True)
     else:
         return f'파일 {file_name}을 찾을 수 없습니다.'
+
+
+"""
+=============== 신규직원 계정 생성 ===============
+"""
+def extract_birthdate(jumin):
+    if pd.isnull(jumin):
+        return None
+    jumin = str(jumin).strip().replace('-', '').replace('.', '').split('e')[0]
+    if len(jumin) < 7:
+        return None
+    
+    front = jumin[:6]
+    gender_code = jumin[6]
+
+    if gender_code in ['1', '2', '5', '6']:
+        century = '19'
+    elif gender_code in ['3', '4', '7', '8'] :
+        century = '20'
+    else:
+        return None
+
+    return century + front
+
+@app.route('/hr')
+def account_index():
+    return render_template('hr_index.html')
+
+@app.route('/hr/upload', methods=['POST'])
+def upload_and_process_hr_files():
+    # 1. 파일 받기
+    files = request.files
+    f_form = files.get('file_form')    # 1_구글폼 작성 정보.csv
+    f_insa = files.get('file_insa')    # 2_기획팀 작성 정보.csv
+    f_old = files.get('file_old_form') # 0_사원정보 업데이트 양식.xlsx
+    
+    if not (f_form and f_insa):
+        return "필수 파일이 누락되었습니다."
+
+    # 경로 저장
+    form_path = os.path.join(app.config['UPLOAD_FOLDER'], 'hr_form.csv')
+    insa_path = os.path.join(app.config['UPLOAD_FOLDER'], 'hr_insa.csv')
+    code_path = os.path.join(app.root_path, 'static', 'forms', 'codes.xlsx')
+    input_a10_path = os.path.join(app.root_path, 'static', 'forms', 'input_a10.csv')
+    input_vpn_path = os.path.join(app.root_path, 'static', 'forms', 'input_vpn.csv')
+    old_path = os.path.join(app.config['UPLOAD_FOLDER'], 'hr_old.xlsx')
+    
+    f_form.save(form_path)
+    f_insa.save(insa_path)
+    old_path = None
+    if f_old and f_old.filename != '':
+        old_path = os.path.join(app.config['UPLOAD_FOLDER'], 'hr_old.xlsx')
+        f_old.save(old_path)
+
+    try:
+        # 2. 데이터 로드 및 전처리
+        df_form = pd.read_csv(form_path, dtype='str')
+        df_form = df_form.drop(['타임스탬프', '전화번호', 'VPN 계정', '복지카드', '증명사진', '통장사본', '한자 이름'], axis=1, errors='ignore')
+        
+        df_insa = pd.read_csv(insa_path, dtype='str')
+
+        if os.path.exists(code_path):
+            excel_data = pd.read_excel(code_path, sheet_name=None, dtype='string')
+            codes = {
+                sheet_name: dict(zip(df['항목명'], df['코드']))
+                for sheet_name, df in excel_data.items()
+            }
+        else:
+            return "서버에 코드표 파일이 존재하지 않습니다.", 404
+
+        # 데이터 결합
+        df = pd.merge(df_form, df_insa, how='outer', on='이름')
+
+        # 데이터 수정 로직
+        df['성별'] = df['성별'].apply(lambda x : '여성' if x=='여' else '남성')
+        df['주민등록번호'] = df['주민등록번호'].str.replace('-','')
+        if '계좌번호' in df.columns:
+            df['계좌번호'] = df['계좌번호'].str.replace(' ', '')
+            df[['(급여)이체은행', '(급여)계좌번호']] = df['계좌번호'].apply(lambda x : pd.Series(str(x).split('/', 1)) if pd.notna(x) else pd.Series([None, None]))
+        
+        # 코드 매핑
+        mapping_cols = {'팀명': '부서', '(급여)이체은행': '은행', '고용구분': '고용', '직급': '직급', '직책': '직책'}
+        for col, code_key in mapping_cols.items():
+            if col in df.columns and code_key in codes:
+                df[col] = df[col].map(codes[code_key])
+
+        # 3. 파일 생성 1: 상용직 관리 등록
+        df_act = pd.read_csv(input_a10_path, dtype='str')
+        df_act = pd.DataFrame(index=df.index, columns=df_act.columns)
+
+        df_act['로그인ID'] = df['계정']
+        df_act['메일ID'] = df['계정']
+        df_act['로그인 비밀번호'] = '111111'
+        df_act['프로필명(한국어)'] = df['이름']
+        df_act['사원명(한국어)'] = df['이름']
+        df_act['성별'] = df['성별']
+        df_act['휴대전화'] = df['전화번호']
+        df_act['기본주소'] = df['기본주소']
+        df_act['사용언어'] = '한국어'
+        df_act['기본라이선스'] = 'EBP라이선스'
+        df_act['메일'] = 'Y'
+        df_act['최초 입사일'] = df['입사일']
+        df_act['회사코드'] = '1000'
+        df_act['부서코드'] = df['팀명']
+        df_act['사번'] = df['사번']
+        df_act['직급코드'] = df['직급']
+        df_act['직책코드'] = df['직책']
+        df_act['재직구분코드'] = 'J01'
+        df_act['고용구분코드'] = df['고용구분']
+        df_act['직무코드'] = '001'
+        df_act['입사일'] = df['입사일']
+        df_act['근태사용'] = '사용'
+        df_act['조직도'] = '표시'
+        df_act['대화/쪽지 조직도'] = '표시'
+
+        template_path = os.path.join(app.root_path, 'static', 'forms', 'template_a10.xlsx')
+        output_path = os.path.join(app.config['PROCESSED_FOLDER'], 'A10 상용직관리 업로드.xlsx')
+
+        if os.path.exists(template_path):
+            wb = openpyxl.load_workbook(template_path)
+            ws = wb.active # 첫 번째 시트 선택
+
+            # 기존 샘플 데이터(8행부터) 삭제
+            if ws.max_row >= 8:
+                ws.delete_rows(8, ws.max_row) 
+
+            # 데이터 입력 (8행부터 시작)
+            start_row = 8
+            for i, row in df_act.iterrows():
+                current_row = start_row + i
+                
+                # 순번 (A열)
+                ws.cell(row=current_row, column=1).value = i + 1
+                
+                # 데이터 매핑 (엑셀 컬럼 위치에 맞춰 값 입력)
+                ws.cell(row=current_row, column=2).value = row['로그인ID']       # B열
+                ws.cell(row=current_row, column=3).value = row['메일ID']         # C열
+                ws.cell(row=current_row, column=4).value = row['로그인 비밀번호'] # D열
+                ws.cell(row=current_row, column=5).value = row['프로필명(한국어)'] # E열
+                ws.cell(row=current_row, column=9).value = row['사원명(한국어)']   # I열
+                ws.cell(row=current_row, column=13).value = row['성별']           # M열
+                ws.cell(row=current_row, column=14).value = row['휴대전화']       # N열
+                ws.cell(row=current_row, column=19).value = row['기본주소']       # S열
+                ws.cell(row=current_row, column=21).value = row['사용언어']       # U열
+                ws.cell(row=current_row, column=26).value = row['기본라이선스']    # W열
+                ws.cell(row=current_row, column=27).value = row['메일']           # X열
+                ws.cell(row=current_row, column=28).value = row['최초 입사일']     # Z열
+                ws.cell(row=current_row, column=30).value = row['회사코드']       # AB열
+                ws.cell(row=current_row, column=31).value = row['부서코드']       # AC열
+                ws.cell(row=current_row, column=32).value = row['사번']           # AD열
+                ws.cell(row=current_row, column=33).value = row['직급코드']       # AE열
+                ws.cell(row=current_row, column=34).value = row['직책코드']       # AF열
+                ws.cell(row=current_row, column=35).value = row['재직구분코드']    # AG열
+                ws.cell(row=current_row, column=36).value = row['고용구분코드']    # AH열
+                ws.cell(row=current_row, column=37).value = row['직무코드']       # AI열
+                ws.cell(row=current_row, column=42).value = row['입사일']         # AO열
+                ws.cell(row=current_row, column=44).value = row['근태사용']       # AQ열
+                ws.cell(row=current_row, column=51).value = row['조직도']         # AX열
+                ws.cell(row=current_row, column=52).value = row['대화/쪽지 조직도'] # AY열
+
+            wb.save(output_path)
+        else:
+            df_act.to_excel(output_path)
+
+
+        # 4. 사원정보 업데이트 파일 생성
+        if old_path and os.path.exists(old_path):
+            df_old = pd.read_excel(old_path, header=5, dtype=str)
+            
+            df_update = df.copy()
+            df_update['예금주'] = df_update.get('이름') 
+
+            df_new = pd.merge(df_old, df_update, how='left', on='사번', suffixes=('', '_new'))
+
+            for col in df_update.columns:
+                if col != '사번' and col in df_old.columns:
+                    if f'{col}_new' in df_new.columns:
+                        df_new[col] = df_new[col].combine_first(df_new[f'{col}_new'])
+
+            df_new = df_new.drop(columns=[col for col in df_new.columns if col.endswith('_new')])
+            df_new = df_new.iloc[:, :22] # 21개 컬럼까지만 사용
+
+            # 추가 가공 로직
+            if '주민등록번호' in df_new.columns:
+                df_new['생년월일'] = df_new['주민등록번호'].apply(extract_birthdate)
+            if '(급여)이체은행' in df_new.columns:
+                df_new['(기타)이체은행'] = df_new['(급여)이체은행']
+            if '(급여)계좌번호' in df_new.columns:
+                df_new['(기타)계좌번호'] = df_new['(급여)계좌번호']
+            if '예금주' in df_new.columns:
+                df_new['예금주2'] = df_new['예금주']
+            if '로그인ID' in df_new.columns:
+                df_new['급여이메일'] = df_new['로그인ID'].apply(lambda x: str(x) + '@bepa.kr' if pd.notna(x) else '')
+            df_new['직종'] = '001'
+            df_new['급여형태'] = '002'
+
+            # 2) [핵심] 엑셀 양식 유지하며 저장하기 (openpyxl 사용)
+            update_filename = '사원정보 업데이트 파일.xlsx'
+            output_update_path = os.path.join(app.config['PROCESSED_FOLDER'], update_filename)
+
+            # 원본 양식 파일을 복사해서 엽니다
+            wb = openpyxl.load_workbook(old_path)
+            ws = wb.active
+
+            # 기존 데이터(8행부터)가 있다면 지우고 시작 (헤더인 7행까지는 유지)
+            if ws.max_row >= 8:
+                ws.delete_rows(8, ws.max_row)
+
+            # 데이터프레임(df_new)의 내용을 8행부터 한 줄씩 입력
+            # df_new의 컬럼 순서가 양식의 컬럼 순서와 일치한다고 가정합니다.
+            start_row = 8
+            # dataframe_to_rows 대신 직접 순회하며 값 입력 (서식 유지에 유리)
+            for i, row in df_new.iterrows():
+                current_row = start_row + i
+                
+                ws.cell(row=current_row, column=1).value = i + 1
+                ws.cell(row=current_row, column=2).value = row.get('사번')
+                ws.cell(row=current_row, column=3).value = row.get('프로필명(한국어)')
+                ws.cell(row=current_row, column=4).value = row.get('프로필명(한국어)')
+                ws.cell(row=current_row, column=5).value = row.get('로그인ID')
+                ws.cell(row=current_row, column=6).value = row.get('회사코드')
+                ws.cell(row=current_row, column=7).value = row.get('회사코드')
+                ws.cell(row=current_row, column=8).value = row.get('부서코드')
+                ws.cell(row=current_row, column=9).value = '000'
+                ws.cell(row=current_row, column=10).value = row.get('주민등록번호')
+                ws.cell(row=current_row, column=11).value = None
+                ws.cell(row=current_row, column=12).value = row.get('생년월일')
+                ws.cell(row=current_row, column=13).value = '000'
+                ws.cell(row=current_row, column=14).value = row.get('급여이메일')
+                ws.cell(row=current_row, column=15).value = row.get('급여형태')
+                ws.cell(row=current_row, column=16).value = row.get('직종')
+                ws.cell(row=current_row, column=17).value = row.get('(급여)이체은행')
+                ws.cell(row=current_row, column=18).value = row.get('(급여)계좌번호')
+                ws.cell(row=current_row, column=19).value = row.get('프로필명(한국어)')
+                ws.cell(row=current_row, column=20).value = row.get('(기타)이체은행')
+                ws.cell(row=current_row, column=21).value = row.get('(기타)계좌번호')
+                ws.cell(row=current_row, column=22).value = row.get('프로필명(한국어)')
+
+            ws.delete_rows(8, 1)
+            wb.save(output_update_path)
+            result_files = [update_filename]
+            return render_template('hr_result.html', result_files=result_files)
+
+        # 4. 파일 생성 2: VPN 등록
+        df_vpn = pd.read_csv(input_vpn_path)
+        df_vpn = pd.DataFrame(index=df.index, columns=df_vpn.columns)
+
+        df_vpn['U_EMAIL'] = df['계정']
+        df_vpn['U_NAME'] = df['이름']
+        df_vpn['U_JUMINNO'] = 'qwer1234!!'
+        df_vpn['U_CN'] = df['팀명']
+        df_vpn['U_GROUP'] = 'Default'
+
+        vpn_path = os.path.join(app.config['PROCESSED_FOLDER'], 'VPN 업로드.txt')
+        df_vpn.to_csv(vpn_path, index=False, sep=',', encoding='cp949')
+
+        result_files = ['A10 상용직관리 업로드.xlsx', 'VPN 업로드.txt']
+        return render_template('hr_result.html', result_files=result_files)
+
+    except Exception as e:
+        return f"인사 정보 처리 중 오류 발생: {str(e)}"
+
+# 다운로드 경로는 기존 trip 다운로드와 유사하게 구성 가능
+@app.route('/hr/download/<file_name>')
+def download_hr_file(file_name):
+    file_path = os.path.join(app.config['PROCESSED_FOLDER'], file_name)
+    return send_file(file_path, as_attachment=True)
+
 
 """
 =============== 숫자 한글 변환기 ===============
