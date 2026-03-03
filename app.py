@@ -517,7 +517,7 @@ def upload_and_process_hr_files():
             for i, row in df_new.iterrows():
                 current_row = start_row + i
                 
-                ws.cell(row=current_row, column=1).value = i + 1  # 순번
+                ws.cell(row=current_row, column=1).value = i  # 순번
                 ws.cell(row=current_row, column=2).value = row.get('사번')
                 ws.cell(row=current_row, column=3).value = row.get('프로필명(한국어)') #이름(한국어)
                 ws.cell(row=current_row, column=4).value = row.get('프로필명(한국어)') #프로필명(한국어)
