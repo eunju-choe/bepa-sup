@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>베파 서포터</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* 기본 스타일 초기화 및 폰트 설정 */
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(to right, #e4e5e6, #ffffff);
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box; /* 패딩이 너비에 포함되도록 설정 */
+        }
+
+        /* 로고 스타일 */
+        .logo {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .logo img {
+            width: 200px;
+            height: auto;
+        }
+
+        /* 메인 제목 */
+        h1 {
+            font-size: 2.5rem;
+            color: #073D95;
+            font-weight: 700;
+            margin: 40px 0 20px; /* 로고와 겹치지 않게 상단 여백 확보 */
+            text-align: center;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+            word-break: keep-all; /* 단어 단위 줄바꿈 */
+        }
+
+        /* 안내 박스 스타일 */
+        .info-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            font-size: 1.1rem;
+            color: #555;
+            
+            /* 반응형 크기 조절 (중요 수정 사항) */
+            width: 100%; 
+            max-width: 600px; 
+            margin: 20px auto;
+            line-height: 1.6; /* 줄 간격 확보 */
+        }
+
+        /* 링크 버튼 컨테이너 */
+        .links {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        /* 링크 버튼 스타일 */
+        .links a {
+            display: block;
+            width: 100%;
+            text-align: center;
+            font-size: 1.2rem;
+            color: white;
+            text-decoration: none;
+            padding: 14px;
+            background: linear-gradient(to right, #073D95, #1e6a91);
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border: 2px solid transparent; /* 호버 시 흔들림 방지용 */
+            box-sizing: border-box; /* 패딩 포함 너비 계산 */
+            transition: transform 0.2s, background 0.3s; /* 부드러운 애니메이션 */
+        }
+
+        .links a:hover {
+            background: linear-gradient(to right, #1e6a91, #073D95);
+            border: 2px solid #073D95;
+            transform: translateY(-3px);
+        }
+
+        /* 푸터 스타일 */
+        footer {
+            margin-top: 40px;
+            font-size: 0.9rem;
+            color: #95a5a6;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .contact-info {
+            color: #555;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        /* 반응형 디자인 (모바일) */
+        @media (max-width: 768px) {
+            .logo {
+                position: static; /* 모바일에서는 로고를 흐름에 맡김 */
+                margin-bottom: 10px;
+            }
+
+            .logo img {
+                width: 150px; /* 로고 크기 축소 */
+            }
+
+            h1 {
+                font-size: 1.8rem; /* 제목 크기 축소 */
+                margin-top: 10px;
+            }
+
+            .info-box, .links a {
+                font-size: 1rem; /* 본문 글자 크기 조정 */
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="logo">
+        <img src="../static/logo.png" alt="Logo">
+    </header>
+
+    <h1>부산경제진흥원의 베스트파트너</h1>
+
+    <div class="info-box">
+        효율적인 업무를 위해 <strong>베파 서포터</strong>를 활용해보세요!<br>  
+        다양한 자동화 도구로 업무 생산성을 높일 수 있습니다. 📌
+    </div>
+
+    <div class="links">
+        <a href="/trip">🚗 관내여비 계산기</a>
+        <a href="/edu">📚 임직원 교육 현황 관리</a>
+        <a href="/hr">⚙️ 신규 직원 계정 생성</a>
+        <a href="/money">💸 숫자 한글 변환기</a>
+    </div>
+
+    <footer>
+        <p class="contact-info">※ 오류신고 및 개선의견 : 최은주 주임(ejchoe24@bepa.kr, 600-1312)</p>
+        <p>&copy; 2024 ejchoe24. All rights reserved. | Version 4.0</p>
+    </footer>
+</body>
+</html>
